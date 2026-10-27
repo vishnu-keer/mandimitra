@@ -1,0 +1,10 @@
+# PHASE 3 (dashboard) + PHASE 4 (tests).
+# None of this is needed to build features or train models.
+streamlit==1.39.0
+plotly==5.24.1
+pytest==8.3.3
+
+# Optional: typed, compact table storage. Without pyarrow the pipeline stores
+# CSV instead and behaves identically - see src/store.py.
+pyarrow==17.0.0
+xlrd==2.0.1

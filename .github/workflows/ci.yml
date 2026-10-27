@@ -1,0 +1,67 @@
+# Continuous integration: free for public repositories on GitHub Actions.
+#
+# 1. Installs the pinned requirements on the two Python versions the project
+#    is tested with (3.12 is Streamlit Community Cloud's default).
+# 2. Runs the full test suite against the COMMITTED data and results,
+#    including the run-manifest hash checks and the headless dashboard tests.
+# 3. Rebuilds everything from the untouched official source files and checks
+#    the rebuild reproduces the committed results (scripts/check_reproducible.py).
+# 4. Starts the real Streamlit server and checks it answers its health probe.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-core.txt
+            requirements-app.txt
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip check
+
+      - name: Tests against the committed data and results
+        run: python -m pytest -o addopts="--strict-markers" -q
+
+      - name: Rebuild from the official source files
+        run: |
+          cp -r outputs "$RUNNER_TEMP/committed_outputs"
+          python scripts/extract_rajasthan.py
+          python scripts/build_features.py
+          python scripts/run_pipeline.py --all-pairs
+
+      - name: Rebuild reproduces the committed results
+        run: python scripts/check_reproducible.py --reference "$RUNNER_TEMP/committed_outputs"
+
+      - name: Dashboard server starts and answers its health check
+        run: |
+          git checkout -- outputs data   # serve the committed files, as the deployed app does
+          streamlit run app.py --server.headless true --server.port 8501 &
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8501/_stcore/health; then echo " - healthy"; exit 0; fi
+            sleep 2
+          done
+          echo "Streamlit did not become healthy"; exit 1

@@ -1,0 +1,29 @@
+# PHASE 1 + PHASE 2 - the data pipeline and the models.
+# Install this first on a slow connection; it contains no large wheels.
+#
+# numpy is held at 1.26.x deliberately: it avoids every numpy-2.x binary
+# mismatch between the pandas / scikit-learn / statsmodels wheels.
+pandas==2.2.3
+numpy==1.26.4
+
+# models
+scikit-learn==1.5.2
+statsmodels==0.14.4
+joblib==1.4.2
+
+# Transitive dependencies, pinned to the versions the results were produced
+# and tested with. Unpinned, a fresh install pulled scipy 1.17.1, which
+# raises a DeprecationWarning from inside statsmodels' optimiser and fails
+# the strict test run -- two 'identical' installs were not identical.
+# scipy 1.15.3 supports Python 3.10-3.13.
+scipy==1.15.3
+patsy==1.0.3
+threadpoolctl==3.7.0
+
+# readers for raw downloads (Agmarknet exports are sometimes .xls-that-is-HTML)
+openpyxl==3.1.5
+lxml==5.3.0
+html5lib==1.1
+
+# DataFrame.to_markdown, used by scripts/data_report.py
+tabulate==0.9.0

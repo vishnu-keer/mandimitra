@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+*.bak
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secrets: none are used, but never let one in by accident
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Scratch - not part of the project
+_to_delete/
+
+# ---------------------------------------------------------------- data
+# TRACKED ON PURPOSE. The deployed dashboard reads these files and must not
+# need a rebuild, and committing them makes every published number
+# reproducible from the repository alone. All are small:
+#   data/raw/source/*.csv     official government files, untouched  (~4.2 MB)
+#   data/raw/*.csv            Rajasthan subset, derived by a script   (~195 KB)
+#   data/interim/clean.parquet, data/processed/features.parquet       (small)
+#   outputs/**/*.csv          pipeline results, incl. outputs/legacy/
+# Their SHA-256 hashes are recorded in docs/RUN_MANIFEST.md.
+#
+# Fitted model objects are NOT tracked: the app does not load them, and a
+# pickled model is opaque and version-fragile.
+models_store/*
+!models_store/.gitkeep

@@ -1,0 +1,356 @@
+{
+  "generated": "2026-10-27",
+  "status": "HISTORICAL. The source ends on 2015-04-28; nothing here is current or live.",
+  "source": {
+    "publisher": "Department of Consumer Affairs (Price Monitoring Cell), Ministry of Consumer Affairs, Food & Public Distribution, Government of India",
+    "platform": "Open Government Data (OGD) Platform India, data.gov.in",
+    "files": {
+      "Onion": "https://data.gov.in/sites/default/files/daily_wholesale_price_Onion_upto_apr_2015.csv",
+      "Tomato": "https://data.gov.in/sites/default/files/daily_wholesale_price_Tomato_upto_apr_2015.csv"
+    },
+    "retrieved": "2026-10-27",
+    "coverage": "2009-01-01 to 2015-04-28",
+    "unit": "Rs. per quintal, wholesale (as published)",
+    "licence": "Government Open Data License - India (GODL-India); attribution to the publisher required"
+  },
+  "environment": {
+    "python": "3.12.3",
+    "implementation": "CPython",
+    "platform": "Linux-6.18.44-fc-v165-x86_64-with-glibc2.39",
+    "packages": {
+      "pandas": "2.2.3",
+      "numpy": "1.26.4",
+      "scipy": "1.15.3",
+      "scikit-learn": "1.5.2",
+      "statsmodels": "0.14.4",
+      "streamlit": "1.39.0",
+      "plotly": "5.24.1",
+      "pyarrow": "17.0.0"
+    }
+  },
+  "code_sha256": "f56cdda27e35abe3acff602aec77bfe957e23a0a6e23b53074f2e841bd56e973",
+  "git_head_at_generation": null,
+  "configuration": {
+    "commodities": [
+      "Onion",
+      "Tomato"
+    ],
+    "raw_centres": [
+      "JAIPUR",
+      "JODHPUR",
+      "KOTA"
+    ],
+    "min_price": 50.0,
+    "max_price": 100000.0,
+    "max_ffill_days": 2,
+    "lags": [
+      1,
+      3,
+      7
+    ],
+    "ma_windows": [
+      3,
+      7
+    ],
+    "vol_window": 7,
+    "rolling_min_periods_frac": 0.6,
+    "horizons": [
+      1,
+      2,
+      3
+    ],
+    "min_rows_per_pair": 400,
+    "test_fraction": 0.2,
+    "cv_folds": 4,
+    "cv_initial_fraction": 0.5,
+    "selection_rule": "lowest mean per-fold CV RMSE; test scored once, after",
+    "candidates": [
+      "Naive",
+      "ARIMA",
+      "RandomForest",
+      "GradientBoosting",
+      "RandomForest-delta"
+    ],
+    "random_state": 42
+  },
+  "evaluated_pairs": [
+    "Onion/Jaipur",
+    "Tomato/Jaipur"
+  ],
+  "excluded": [
+    {
+      "commodity": "Onion",
+      "market": "Jodhpur",
+      "horizon": "all",
+      "reason": "data gate: 342 usable rows at best (h1=315, h2=313, h3=342); gate is 400"
+    },
+    {
+      "commodity": "Onion",
+      "market": "Kota",
+      "horizon": "all",
+      "reason": "data gate: 256 usable rows at best (h1=241, h2=242, h3=256); gate is 400"
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jodhpur",
+      "horizon": "all",
+      "reason": "data gate: 348 usable rows at best (h1=322, h2=319, h3=348); gate is 400"
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Kota",
+      "horizon": "all",
+      "reason": "data gate: 257 usable rows at best (h1=245, h2=243, h3=257); gate is 400"
+    }
+  ],
+  "boundaries": [
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 1,
+      "train_start": "2009-03-25",
+      "train_end": "2014-02-13",
+      "cv_start": "2011-12-27",
+      "cv_end": "2014-02-13",
+      "cv_folds": 4,
+      "test_start": "2014-02-17",
+      "test_end": "2015-04-27",
+      "cut_test": "2014-02-17",
+      "n_train": 801,
+      "n_cv_scored": 401,
+      "n_test_scored": 200
+    },
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 2,
+      "train_start": "2009-09-20",
+      "train_end": "2014-01-29",
+      "cv_start": "2011-12-26",
+      "cv_end": "2014-01-29",
+      "cv_folds": 4,
+      "test_start": "2014-02-02",
+      "test_end": "2015-04-26",
+      "cut_test": "2014-02-02",
+      "n_train": 803,
+      "n_cv_scored": 401,
+      "n_test_scored": 201
+    },
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 3,
+      "train_start": "2009-05-30",
+      "train_end": "2014-02-04",
+      "cv_start": "2011-12-27",
+      "cv_end": "2014-02-04",
+      "cv_folds": 4,
+      "test_start": "2014-02-10",
+      "test_end": "2015-04-25",
+      "cut_test": "2014-02-10",
+      "n_train": 818,
+      "n_cv_scored": 409,
+      "n_test_scored": 205
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 1,
+      "train_start": "2010-02-09",
+      "train_end": "2014-02-16",
+      "cv_start": "2012-01-03",
+      "cv_end": "2014-02-16",
+      "cv_folds": 4,
+      "test_start": "2014-02-18",
+      "test_end": "2015-04-27",
+      "cut_test": "2014-02-18",
+      "n_train": 795,
+      "n_cv_scored": 397,
+      "n_test_scored": 199
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 2,
+      "train_start": "2010-02-06",
+      "train_end": "2014-01-29",
+      "cv_start": "2011-12-26",
+      "cv_end": "2014-01-29",
+      "cv_folds": 4,
+      "test_start": "2014-02-02",
+      "test_end": "2015-04-26",
+      "cut_test": "2014-02-02",
+      "n_train": 801,
+      "n_cv_scored": 401,
+      "n_test_scored": 201
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 3,
+      "train_start": "2010-02-05",
+      "train_end": "2014-02-07",
+      "cv_start": "2012-01-01",
+      "cv_end": "2014-02-07",
+      "cv_folds": 4,
+      "test_start": "2014-02-11",
+      "test_end": "2015-04-25",
+      "cut_test": "2014-02-11",
+      "n_train": 814,
+      "n_cv_scored": 407,
+      "n_test_scored": 204
+    }
+  ],
+  "selected": [
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 1,
+      "best_model": "Naive",
+      "best_test_rmse": 94.273538174824,
+      "naive_test_rmse": 94.273538174824,
+      "improvement_over_naive_pct": 0.0,
+      "beats_naive": false,
+      "n_test": 200
+    },
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 2,
+      "best_model": "Naive",
+      "best_test_rmse": 110.29133739545284,
+      "naive_test_rmse": 110.29133739545284,
+      "improvement_over_naive_pct": 0.0,
+      "beats_naive": false,
+      "n_test": 201
+    },
+    {
+      "commodity": "Onion",
+      "market": "Jaipur",
+      "horizon": 3,
+      "best_model": "Naive",
+      "best_test_rmse": 127.9290962155857,
+      "naive_test_rmse": 127.9290962155857,
+      "improvement_over_naive_pct": 0.0,
+      "beats_naive": false,
+      "n_test": 205
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 1,
+      "best_model": "RandomForest-delta",
+      "best_test_rmse": 127.32750013870776,
+      "naive_test_rmse": 120.5098048514171,
+      "improvement_over_naive_pct": -5.66,
+      "beats_naive": false,
+      "n_test": 199
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 2,
+      "best_model": "ARIMA",
+      "best_test_rmse": 179.10430396631085,
+      "naive_test_rmse": 178.16086419957193,
+      "improvement_over_naive_pct": -0.53,
+      "beats_naive": false,
+      "n_test": 201
+    },
+    {
+      "commodity": "Tomato",
+      "market": "Jaipur",
+      "horizon": 3,
+      "best_model": "ARIMA",
+      "best_test_rmse": 227.38110536786627,
+      "naive_test_rmse": 226.682164983416,
+      "improvement_over_naive_pct": -0.31,
+      "beats_naive": false,
+      "n_test": 204
+    }
+  ],
+  "inputs": {
+    "data/raw/source/daily_wholesale_price_Onion_upto_apr_2015.csv": {
+      "sha256": "e0b5171b81bc93983104990728a45d271f30c794bcc3c53f73553cf91fd1335a",
+      "bytes": 2083645
+    },
+    "data/raw/source/daily_wholesale_price_Tomato_upto_apr_2015.csv": {
+      "sha256": "fb872513c2113ae3ec39f5a18ecba8eced089d9545e55f91382530b2cebb88c1",
+      "bytes": 2140492
+    },
+    "data/raw/datagovin_daily_wholesale_rajasthan.csv": {
+      "sha256": "0ddb115a451186defd6ea5425470261133c1df0da6f6181a8dca33af1a994562",
+      "bytes": 195329
+    },
+    "data/interim/clean.parquet": {
+      "sha256": "8bfbd742cbf810daa698588635b48e9fdf78c04ba4ba9bdd900a2027b4b7821d",
+      "bytes": 45675
+    },
+    "data/processed/features.parquet": {
+      "sha256": "f013c7663beb87c28d3d15fc4e9a0ea31429868b3c9f74449c18ae209462b814",
+      "bytes": 103921
+    }
+  },
+  "outputs": {
+    "outputs/best_model.csv": {
+      "sha256": "7259b86bd4d3f4934a05c0e57bff800c334f19f0dc77c374f51b855cea864a15",
+      "bytes": 2773
+    },
+    "outputs/cv_folds.csv": {
+      "sha256": "97e36d904eec1d327f645085b427604a74e6e47f131db0cd3f2e0c0abef15ba7",
+      "bytes": 21639
+    },
+    "outputs/excluded.csv": {
+      "sha256": "37e0ad2b84d3d40a9d070b32a923c8f4c92980cbf862eac5f95e46f322ee5929",
+      "bytes": 400
+    },
+    "outputs/feature_importance.csv": {
+      "sha256": "b5a85481dbad456017951652a2a2050501f69558157669679aca41442ce7a7bc",
+      "bytes": 12880
+    },
+    "outputs/forecast.csv": {
+      "sha256": "bed311c0656ce5c801fea5fe7e541b05b85386ab90cbbc68b782c2b6f1d49540",
+      "bytes": 2655
+    },
+    "outputs/model_comparison.csv": {
+      "sha256": "5215d20ac2c362d186b1d6a85184d18c66a03179dcece095f8a7e31e3dfc76d2",
+      "bytes": 14292
+    },
+    "outputs/predictions.csv": {
+      "sha256": "c2af4e588c4234a7c6096d3fd8c67b1b87ec418de2ae3b92ddbd9aafd4380a11",
+      "bytes": 1210287
+    },
+    "outputs/split_boundaries.csv": {
+      "sha256": "babb0bfd96fa724ca970ac4d449955df8642b193a14c00389db0f80248772ebb",
+      "bytes": 774
+    },
+    "outputs/experiments/delta_target_cv.csv": {
+      "sha256": "a1e892f924a6e4067e2d6edc9c7e2f6459469cd2c3b3ea5846af0d302b83d74f",
+      "bytes": 13230
+    },
+    "outputs/experiments/hyperparameter_sensitivity.csv": {
+      "sha256": "ca74b74e66496e9fb92b7aa2088cc3ed476b14d79094d352baf392d59a14f3bd",
+      "bytes": 1848
+    },
+    "outputs/legacy/best_model.csv": {
+      "sha256": "8c0b39fcbfdb2a062a70fd0805104315abdec7651acff1cfb70c88852dca417c",
+      "bytes": 654
+    },
+    "outputs/legacy/feature_importance.csv": {
+      "sha256": "a6c4192fa17cddcb24f22a5fbdb4fb74aba0b63c5453687caa6b207b51430b11",
+      "bytes": 4221
+    },
+    "outputs/legacy/forecast.csv": {
+      "sha256": "ed6e1476b3386d046c2a062e66b91289a514dfe9e71e35aea9666131c5d7a762",
+      "bytes": 742
+    },
+    "outputs/legacy/model_comparison.csv": {
+      "sha256": "d094a3d11e3fcfe1d0bb8101bfe6bba6d5edbe351aff9cec68a431a37df69937",
+      "bytes": 2717
+    },
+    "outputs/legacy/predictions.csv": {
+      "sha256": "b598d1c94ed987c3c4411395800955caaeab4ae26bb66a5ca60ad2d1a3d9bab6",
+      "bytes": 141076
+    }
+  }
+}

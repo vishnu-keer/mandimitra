@@ -1,0 +1,21 @@
+# Pin the theme.
+#
+# Without this, Streamlit follows the viewer's OS dark/light preference, so the
+# dashboard renders differently on every machine. That was a real demo bug: on
+# a dark background the chart series lost almost all contrast. Pinning to light
+# makes it identical on a laptop, a projector and a judge's phone. The chart
+# colours in app.py are mid-tones that survive dark mode too, as a backstop.
+[theme]
+base = "light"
+primaryColor = "#1f6f4a"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f6f4"
+textColor = "#1d2430"
+
+[browser]
+gatherUsageStats = false
+
+# Hide the developer "Deploy" button and menu items from viewers (projector,
+# judges, public link). Locally, the app still reloads on save.
+[client]
+toolbarMode = "viewer"

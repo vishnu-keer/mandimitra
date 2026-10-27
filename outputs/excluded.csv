@@ -1,0 +1,5 @@
+commodity,market,horizon,reason
+Onion,Jodhpur,all,"data gate: 342 usable rows at best (h1=315, h2=313, h3=342); gate is 400"
+Onion,Kota,all,"data gate: 256 usable rows at best (h1=241, h2=242, h3=256); gate is 400"
+Tomato,Jodhpur,all,"data gate: 348 usable rows at best (h1=322, h2=319, h3=348); gate is 400"
+Tomato,Kota,all,"data gate: 257 usable rows at best (h1=245, h2=243, h3=257); gate is 400"

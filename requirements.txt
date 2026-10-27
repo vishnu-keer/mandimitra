@@ -1,0 +1,9 @@
+# Everything, for a clean machine on a reasonable connection.
+#
+#   pip install -r requirements.txt
+#
+# On a slow connection, install in two stages instead:
+#   pip install -r requirements-core.txt   # Phases 1-2
+#   pip install -r requirements-app.txt    # Phases 3-4
+-r requirements-core.txt
+-r requirements-app.txt

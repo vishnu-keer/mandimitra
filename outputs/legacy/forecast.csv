@@ -1,0 +1,4 @@
+commodity,market,horizon,model,from_date,forecast_date,last_reported_price,predicted_price,trend_note
+Onion,Jaipur,1,GradientBoosting,2015-04-28,2015-04-29,550.0,552.38,"Forecast is broadly flat than the last reported price (+0.4%), and below the recent 7-day average. This is a short-term statistical signal, not advice."
+Onion,Jaipur,2,ARIMA,2015-04-28,2015-04-30,550.0,548.16,"Forecast is broadly flat than the last reported price (-0.3%), and below the recent 7-day average. This is a short-term statistical signal, not advice."
+Onion,Jaipur,3,Naive,2015-04-28,2015-05-01,550.0,550.0,"Forecast is broadly flat than the last reported price (+0.0%), and below the recent 7-day average. This is a short-term statistical signal, not advice."

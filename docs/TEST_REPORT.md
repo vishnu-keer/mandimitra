@@ -1,0 +1,129 @@
+# Test report
+
+Run on 27 October 2026. Every result below was observed, not assumed. Where
+something was **not** tested, it says so.
+
+## Environments
+
+| Where | Python | How |
+|---|---|---|
+| Clean clone, fresh virtualenv | CPython 3.11 and 3.12, Linux | `git clone` → `pip install -r requirements.txt` → every CI step |
+| Development copy | CPython 3.12, Linux | pipeline, tests, browser checks |
+| Your laptop's project folder (via the desktop link) | CPython 3.10, Linux VM | pipeline + tests on the actual folder |
+| **Your Mac's own `.venv` (CPython 3.11.9, macOS)** | — | **Not run by me.** See "Manual checks". |
+
+## 1. Install from a clean clone
+
+```bash
+git clone <repo> && cd <repo>
+python3.11 -m venv .venv && . .venv/bin/activate      # and again with 3.12
+pip install -r requirements.txt && pip check
+```
+
+Result on 3.11 and 3.12: install succeeded, `pip check` → *No broken
+requirements found.* The transitive pins (`scipy==1.15.3` etc.) were added
+after an unpinned install pulled scipy 1.17.1, which raised a
+`DeprecationWarning` inside statsmodels and failed the strict test run.
+
+## 2. Test suite
+
+```bash
+python -m pytest
+```
+
+| Environment | Result |
+|---|---|
+| Clean clone, 3.11 | **121 passed** in 20.5 s |
+| Clean clone, 3.12 | **121 passed** in 20.7 s |
+| Development copy, 3.12 | **121 passed** in 17.2 s |
+| Your project folder after the update, 3.10 (desktop link) | **121 passed** in 7.4 s |
+
+`FutureWarning` and `DeprecationWarning` are errors (`pytest.ini`). No test is
+skipped when the data is present.
+
+| File | Tests | What it guarantees |
+|---|---:|---|
+| `test_features_no_leakage.py` | 9 | no feature can see the future; no `bfill`/`interpolate` in `src/` |
+| `test_splits_chronology.py` | 10 | chronological, disjoint, date-based splits |
+| `test_evaluation_protocol.py` | 33 | CV folds expand and never overlap test; embargo on target dates; identical rows per model; selection never reads test; ARIMA train diagnostic has a real sample and only uses the past |
+| `test_forecast_validation.py` | 17 | forecast dates strictly after the last data date; every candidate present; Naive retained |
+| `test_data_validation.py` | 19 | zeros → missing; range filter; duplicates; observed-target masks; gate |
+| `test_metrics.py` | 10 | MAE/RMSE/MAPE/R² against hand-computed values and undefined cases |
+| `test_provenance.py` | 5 | government files unaltered (SHA-256); extract reproduces the original file byte for byte |
+| `test_manifest.py` | 6 | every hash in the run manifest matches its file; manifest matches results; the dashboard and its data layer cannot import a model library |
+| `test_dashboard.py` | 12 | the real `app.py` (Streamlit AppTest) renders every pair, horizon, language and toggle without an exception; the comparison chart's default selection is never empty; missing outputs give an actionable message |
+| `conftest.py` fixtures | — | synthetic inputs for unit tests only, never project data |
+
+## 3. Pipeline gates
+
+```bash
+python scripts/extract_rajasthan.py
+python scripts/build_features.py            # PHASE 1 GATE: PASS
+python scripts/run_pipeline.py --all-pairs  # PHASE 2 GATE: PASS
+```
+
+Phase 1: Onion/Jaipur 1,002 and Tomato/Jaipur 995 usable 1-day rows; Jodhpur
+and Kota excluded by the 400-row gate. Phase 2 gate checks (all PASS): all
+outputs written; identical rows per CV fold, pooled CV and test; all 5
+candidates present; no fitting target crosses a fold origin or the test cutoff;
+selection by CV not test; ARIMA training diagnostic has n ≥ 100 or is null;
+every train metric labelled; forecast dates after the last observed date.
+Runtime about 20–60 s.
+
+## 4. Determinism and reproducibility
+
+| Check | Result |
+|---|---|
+| Same environment, rebuilt twice from the government files | all 11 data/output files **byte-identical** |
+| CPython 3.11 vs 3.12 (Linux) | **byte-identical** |
+| Clean clone: rebuild, then `git status` | no tracked file changed |
+| CPython 3.10 vs 3.12 | ARIMA predictions differ by ≤ 0.042 Rs./q, ARIMA RMSE by ≤ 0.002; everything else identical; **same selected models** |
+| `scripts/check_reproducible.py` against the 3.10 build | PASS |
+| Negative controls: flip one selected model; nudge one RMSE by 0.1 | both correctly **FAIL** |
+
+## 5. The real app in a browser
+
+Streamlit server (`streamlit run app.py`, headless) driven by Playwright
+Chromium — `verify_ui.js`, 31 checks, **31 passed**:
+
+- first load 2.3 s (nothing is trained on page load; also enforced by a test);
+- Onion and Tomato × all six tabs: no Streamlit exception;
+- Model evaluation × 1, 2, 3 days × both pairs: the *Actual vs predicted* chart
+  renders with two models pre-selected, and the selection protocol is named;
+- Forecast tab: origin date, target dates and the "not advice" notice present;
+- Hindi mode renders;
+- browser console and page errors: **none**;
+- OS dark-mode preference: page stays light (`rgb(255, 255, 255)`);
+- 390 px phone width: no horizontal overflow.
+
+Error states (AppTest): missing `features.parquet` → "The data has not been
+built yet" plus the exact command; missing `outputs/` → "Model results are
+missing" plus the command; no traceback in either. Server health endpoint
+answered in under 5 s.
+
+## 6. Repository contents
+
+Simulated `git init && git add -A` on a copy containing a `.venv`, `.bak`
+files, `_to_delete/`, `.DS_Store`, `__pycache__`, a `.env` and a
+`.streamlit/secrets.toml`: **90 files tracked (7.9 MB; 91 with this report), none of those
+included**, and every file `app.py` reads is tracked. A scan of tracked text
+files for keys, tokens, passwords, private keys and personal paths found none.
+
+## Manual checks (not done by me)
+
+1. **Your Mac:** `source .venv/bin/activate && python -m pytest` — expect
+   121 passed. If you rebuild the pipeline on the Mac, ARIMA's last digits may
+   change; then run `python scripts/make_manifest.py`, and `test_manifest.py`
+   will pass again.
+2. **Licence:** open the dataset page on data.gov.in and confirm it shows
+   GODL-India (the site blocks automated reading).
+3. **Hindi wording:** have a native speaker read the overview once.
+4. **Projector:** check colours and font size on the actual projector.
+5. **After deployment:** the smoke test in `docs/DEPLOY.md`, step 6.
+
+## Known limitations of the testing
+
+- GitHub Actions itself has not run yet (the repository is not on GitHub).
+  The workflow's steps were executed by hand in clean environments.
+- No accessibility audit beyond contrast-conscious colours and the phone check.
+- No load testing; a single-user demo app.

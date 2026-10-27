@@ -1,0 +1,4 @@
+commodity,market,horizon,best_model,best_test_rmse,best_test_mae,best_test_mape,naive_test_rmse,improvement_over_naive_pct,beats_naive,lowest_mae_model,lowest_mae,naive_test_mae,metrics_agree,n_test
+Onion,Jaipur,1,GradientBoosting,87.36346122165656,50.34426956160525,5.615924136717766,94.27353817482401,7.33,True,Naive,39.75,39.75,False,200
+Onion,Jaipur,2,ARIMA,108.93539618596903,57.99584951693574,6.447554282091902,110.29133739545283,1.23,True,Naive,53.233830845771145,53.233830845771145,False,201
+Onion,Jaipur,3,Naive,127.9290962155857,65.85365853658537,7.176982016867238,127.9290962155857,0.0,False,Naive,65.85365853658537,65.85365853658537,True,205
