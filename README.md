@@ -37,10 +37,17 @@ could have shown it doesn't?*
   2015, data they never saw.
 - **Missing days handled, not hidden.** A forecast is only ever scored against
   a day the mandi actually reported.
-- **A dashboard for non-specialists:** overview cards, price history with
-  reported vs carried-forward days, a comparison view, model evaluation with
-  actual-vs-predicted and residual charts, the 3-day forecast, and the full
-  method. English and Hindi. CSV downloads.
+- **Significance, not just scores.** Diebold–Mariano tests (Holm-adjusted) of
+  every model against Naive, and a weekly seasonal baseline as a second check.
+- **A dashboard for non-specialists:** overview cards with a data-quality and
+  freshness panel, price history with reported vs carried-forward days, a
+  comparison view, model evaluation with actual-vs-predicted and residual
+  charts, the 3-day forecast, and the full method. English and Hindi. CSV
+  downloads.
+- **Current prices, honestly.** A tested client for the official AGMARKNET
+  daily price API (data.gov.in) with validation, paging and all-or-nothing
+  updates. It needs a free personal key; without one, the *Latest prices* tab
+  says "Not connected" instead of showing anything that looks live.
 
 ## What we found
 
@@ -57,6 +64,8 @@ Chosen by cross-validation; test RMSE computed once, afterwards (Rs./quintal).
 
 - **No model chosen in advance beat "same as today"** on this data, and Naive
   had the lowest test MAE everywhere.
+- **0 of 48** Diebold–Mariano tests found any model more accurate than Naive
+  (24 squared-error, 24 absolute-error comparisons).
 - On 83–85% of reported days, the quoted price is **identical** to the previous
   report. That is a large part of why Naive is so hard to beat.
 - Our **first version** picked the lowest-*test*-error model and reported
@@ -69,7 +78,7 @@ Chosen by cross-validation; test RMSE computed once, afterwards (Rs./quintal).
 This is a result about one mandi, two commodities, 2009–2015, using prices
 alone. It is not a claim that forecasting is impossible with better inputs.
 
-![Model evaluation](docs/screenshots/07-tomato-model-evaluation.png)
+![Model evaluation](docs/screenshots/08-tomato-model-evaluation.png)
 
 ## Quick start
 
@@ -99,10 +108,17 @@ python scripts/make_manifest.py              # docs/RUN_MANIFEST.md (hashes)
 python -m pytest
 ```
 
-Optional audits: `scripts/experiment_delta_target.py` (why the fifth model was
-added) and `scripts/experiment_hyperparameter_sensitivity.py` (whether the tree
-settings changed any conclusion — they changed one selection and no
-conclusion).
+Optional audits, each with its decision rule written in the script before it
+ran: `experiment_delta_target.py` (why the fifth model was added),
+`experiment_hyperparameter_sensitivity.py` (the tree settings changed one
+selection and no conclusion), `experiment_seasonal_naive.py` (a weekly
+baseline is far weaker than Naive) and `experiment_significance.py`
+(Diebold–Mariano tests).
+
+Current prices (optional): `export DATAGOVIN_API_KEY=…` (free from a
+data.gov.in account; never commit it), then
+`python scripts/fetch_current_prices.py`. On Streamlit Cloud add the same name
+under *Settings → Secrets*.
 
 To check a rebuild against the committed results:
 
@@ -113,14 +129,16 @@ python scripts/check_reproducible.py --reference /tmp/committed
 
 ## Testing
 
-`python -m pytest` runs **121 tests** in about 20 seconds, with
+`python -m pytest` runs **154 tests** in about 25 seconds, with
 `FutureWarning`/`DeprecationWarning` treated as errors. They check guarantees,
 not just that code runs: no feature can see the future; every model is scored
 on identical rows; no training target crosses a boundary; selection never uses
 test; only reported prices are scored; the government files are unaltered;
 every hash in the run manifest matches its file; the dashboard renders every
 series, horizon and language without an exception; and the dashboard cannot
-import a model library. Results and commands: [`docs/TEST_REPORT.md`](docs/TEST_REPORT.md).
+import a model library; current-price ingestion survives schema changes,
+failed or partial downloads, and never leaks the API key. Results and commands:
+[`docs/TEST_REPORT.md`](docs/TEST_REPORT.md).
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) repeats the tests on
 Python 3.11 and 3.12, rebuilds everything from the government files, checks it
@@ -138,13 +156,16 @@ The dashboard reads files; it trains nothing on page load. Details:
 
 ```
 app.py                     Streamlit dashboard (presentation only)
-src/                       config, cleaning, features, splits, models, evaluation, intervals, forecast
+src/                       config, cleaning, features, splits, models, evaluation, intervals,
+                           forecast, significance, live_data (current prices)
 scripts/                   pipeline steps, reports, audits, reproducibility check
-tests/                     121 tests
+tests/                     154 tests
 data/raw/source/           official government files, untouched
 data/raw, interim, processed   derived data (regenerable)
 outputs/                   results the app reads; legacy/ = first-version results; experiments/
-docs/                      methodology, data source, architecture, demo script, judge Q&A, deploy
+docs/                      methodology, data, architecture, demo runbook, judge Q&A, deploy, reports
+research/                  paper (Markdown + PDF), references.bib, figures, key_numbers.json
+presentation/              pitch deck (PPTX + PDF), poster, QR codes, build tools
 ```
 
 ## Data and attribution
@@ -157,12 +178,13 @@ and [`DATA_LICENSE.md`](DATA_LICENSE.md).
 
 ## Limitations
 
-- Historical only; it is not a live price service.
+- Historical evaluation only; current prices appear only once an API key is
+  configured, and are never used by a model.
 - One mandi (Jaipur). Jodhpur and Kota are in the source but report too rarely
   and are excluded, with reasons shown.
 - Prices only — no arrivals, weather, MSP, festivals or transport costs.
-- About 45% of calendar days have no reported price; 35% of model inputs use a
-  carried-forward price (never a target).
+- About 44–47% of calendar days have no reported price; 35% of model inputs use
+  a carried-forward price (never a target).
 - Disclosed judgement calls: the validation design was changed once after
   seeing validation results; the tree settings date from the first protocol
   (audited); the fifth model was admitted by a rule written in advance.
@@ -177,8 +199,14 @@ and [`DATA_LICENSE.md`](DATA_LICENSE.md).
 | [`docs/DATA_REPORT.md`](docs/DATA_REPORT.md) | Coverage per series (generated) |
 | [`docs/RUN_MANIFEST.md`](docs/RUN_MANIFEST.md) | Environment, configuration and file hashes (generated) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Pipeline and modules |
-| [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | 90-second pitch, 3-minute demo, fallbacks |
-| [`docs/JUDGE_QA.md`](docs/JUDGE_QA.md) | 21 likely questions, answered |
+| [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md) | 30 s / 90 s / 3 / 5 / 10-minute scripts, expected values, fallbacks |
+| [`docs/JUDGE_QA.md`](docs/JUDGE_QA.md) | 32 likely questions, answered |
+| [`research/MANDIMITRA_RESEARCH_PAPER.md`](research/MANDIMITRA_RESEARCH_PAPER.md) | Preprint (also PDF); verified references in `research/references.bib` |
+| [`docs/FINAL_TECHNICAL_REPORT.md`](docs/FINAL_TECHNICAL_REPORT.md) | Full technical report (also PDF) |
+| [`presentation/`](presentation/) | Pitch deck (PPTX, PDF), A2 poster, QR codes |
+| [`docs/EXECUTIVE_SUMMARY.md`](docs/EXECUTIVE_SUMMARY.md) · [`PROBLEM_STATEMENT`](docs/PROBLEM_STATEMENT.md) · [`COMPETITIVE_LANDSCAPE`](docs/COMPETITIVE_LANDSCAPE.md) · [`IMPACT_AND_MEASUREMENT`](docs/IMPACT_AND_MEASUREMENT.md) · [`USER_RESEARCH_PLAN`](docs/USER_RESEARCH_PLAN.md) · [`PRIVACY_AND_ETHICS`](docs/PRIVACY_AND_ETHICS.md) · [`RISK_REGISTER`](docs/RISK_REGISTER.md) · [`SCALABILITY_AND_SUSTAINABILITY`](docs/SCALABILITY_AND_SUSTAINABILITY.md) · [`BUDGET_AND_ROADMAP`](docs/BUDGET_AND_ROADMAP.md) | Competition documents |
+| [`docs/COMPETITION_SHORTLIST.md`](docs/COMPETITION_SHORTLIST.md) · [`SUBMISSION_TEMPLATE`](docs/SUBMISSION_TEMPLATE.md) · [`POSTER_CONTENT`](docs/POSTER_CONTENT.md) · [`DEMO_VIDEO_STORYBOARD`](docs/DEMO_VIDEO_STORYBOARD.md) | Submission material |
+| [`docs/COMPETITION_GAP_ANALYSIS.md`](docs/COMPETITION_GAP_ANALYSIS.md) · [`RELEASE_CHECKLIST`](docs/RELEASE_CHECKLIST.md) | Audit and release status |
 | [`docs/TEST_REPORT.md`](docs/TEST_REPORT.md) | What was verified, how, and what wasn't |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | GitHub + Streamlit Community Cloud, step by step |
 | `docs/archive/` | Superseded first-version documents, kept for history |

@@ -28,9 +28,10 @@ import plotly.io as pio
 import streamlit as st
 
 from src import config
+from src import live_data
 from src.dashboard_data import (
     comparison_series, dataset_facts, load_everything, price_history,
-    provenance_text, selectable_pairs, yearly_reporting,
+    provenance_text, quality_facts, selectable_pairs, yearly_reporting,
 )
 
 st.set_page_config(page_title="MandiMitra | Mandi price intelligence",
@@ -99,7 +100,12 @@ T = {
                   "today's sale.",
         "commodity": "Commodity", "market": "Market (mandi)", "lang": "Language",
         "tabs": ["Overview", "Price history", "Compare", "Model evaluation",
-                 "Forecast", "Method & data"],
+                 "Forecast", "Latest prices", "Method & data"],
+        "q_title": "Data quality and freshness",
+        "q_latest": "Latest genuine observation", "q_age": "{n:,} days old",
+        "q_unch": "Price same as previous report", "q_unch_s": "of reported days",
+        "q_gap": "Longest reporting gap", "q_gap_s": "days between two reports",
+        "q_cf": "Model inputs carried forward", "q_cf_s": "never used as targets",
         "k_last": "Last reported price", "k_status": "Data status",
         "k_status_v": "Historical", "k_status_s": "Series ends {d}",
         "k_cov": "Days with a reported price", "k_cov_s": "{n:,} of {t:,} calendar days",
@@ -140,7 +146,12 @@ T = {
                   "निर्णय लेने के लिए नहीं।",
         "commodity": "फसल", "market": "मंडी", "lang": "भाषा",
         "tabs": ["सारांश", "भाव इतिहास", "तुलना", "मॉडल मूल्यांकन",
-                 "अनुमान", "पद्धति और स्रोत"],
+                 "अनुमान", "ताज़ा भाव", "पद्धति और स्रोत"],
+        "q_title": "आँकड़ों की गुणवत्ता और ताज़गी",
+        "q_latest": "अंतिम वास्तविक दर्ज भाव", "q_age": "{n:,} दिन पुराना",
+        "q_unch": "भाव पिछली बार जैसा ही", "q_unch_s": "दर्ज दिनों में",
+        "q_gap": "सबसे लंबा अंतराल", "q_gap_s": "दिन, दो दर्ज भावों के बीच",
+        "q_cf": "आगे बढ़ाए गए इनपुट", "q_cf_s": "कभी लक्ष्य नहीं बने",
         "k_last": "अंतिम दर्ज भाव", "k_status": "आँकड़ों की स्थिति",
         "k_status_v": "ऐतिहासिक", "k_status_s": "आँकड़े {d} तक",
         "k_cov": "जिन दिनों भाव दर्ज हुआ", "k_cov_s": "{t:,} दिनों में से {n:,}",
@@ -375,6 +386,20 @@ with tabs[0]:
                    "The model was chosen on earlier data; these test numbers were "
                    "computed once, afterwards. See Model evaluation.")
 
+    q = quality_facts(clean, commodity, market)
+    if q:
+        st.markdown(f"#### {t['q_title']}")
+        q1, q2, q3, q4 = st.columns(4)
+        q1.markdown(_card(t["q_latest"], _d(q["latest_observation"]),
+                          t["q_age"].format(n=q["age_days"]), "warn"),
+                    unsafe_allow_html=True)
+        q2.markdown(_card(t["q_unch"], f'{q["unchanged_pct"]:.0f}%', t["q_unch_s"]),
+                    unsafe_allow_html=True)
+        q3.markdown(_card(t["q_gap"], f'{q["longest_gap_days"]:,}', t["q_gap_s"]),
+                    unsafe_allow_html=True)
+        q4.markdown(_card(t["q_cf"], f'{facts["imputed_pct"]:.0f}%', t["q_cf_s"]),
+                    unsafe_allow_html=True)
+
 # ========================================================= 2. PRICE HISTORY
 with tabs[1]:
     st.subheader(f"Daily wholesale price — {commodity}, {market}")
@@ -582,6 +607,19 @@ with tabs[3]:
                    f"MAE measures the typical day; RMSE weights rare large misses "
                    f"more. Both are reported because they answer different questions.")
 
+    dm_df = DATA.get("dm", pd.DataFrame())
+    if not dm_df.empty and sel != "Naive":
+        r_ = dm_df[(dm_df["commodity"] == commodity) & (dm_df["market"] == market)
+                   & (dm_df["horizon"] == horizon) & (dm_df["model"] == sel)
+                   & (dm_df["loss"] == "squared")]
+        if not r_.empty:
+            r_ = r_.iloc[0]
+            st.caption(f"Significance (Diebold–Mariano, squared error, test period, "
+                       f"{int(r_['n'])} days): {MODEL_LABEL[sel]} vs Naive "
+                       f"DM = {r_['dm_stat']:+.2f}, p = {r_['p_value']:.3f} "
+                       f"(Holm-adjusted {r_['p_holm']:.3f}). Negative would favour "
+                       f"the model.")
+
     st.markdown("**Error in each cross-validation fold**")
     if not hf.empty:
         log_y = st.toggle("Log scale", value=True, key=f"log_{horizon}",
@@ -764,8 +802,77 @@ with tabs[4]:
                            "text/csv", key="dl_fc")
     st.caption(t["advice"])
 
-# ========================================================= 6. METHOD & DATA
+# ========================================================= 6. LATEST PRICES
+@st.cache_data(ttl=6 * 3600, show_spinner="Checking the official API...")
+def _refresh_live(_key_present: bool):
+    """Try the official API at most every 6 hours; always return the last GOOD
+    snapshot plus status. The key is read inside live_data, never shown."""
+    if _key_present:
+        live_data.update_snapshot(
+            live_data.get_api_key(),
+            filters_list=[{"state": "Rajasthan", "commodity": c}
+                          for c in config.TARGET_COMMODITIES],
+            # A page view must not hang on a slow government API.
+            fetch_kwargs={"timeout": 10.0, "retries": 2})
+    return live_data.load_latest()
+
+
 with tabs[5]:
+    st.subheader("Latest official mandi prices" if L == "en" else "ताज़ा आधिकारिक मंडी भाव")
+    st.caption("Observed prices, not forecasts. They are kept separate from the "
+               "historical evaluation and are not used by any model here.")
+    key_present = bool(live_data.get_api_key())
+    live_df, live_status = _refresh_live(key_present)
+    fr = live_status.get("freshness", {"status": "unavailable"})
+    if live_df.empty:
+        st.info(
+            "**Not connected.** Current prices come from the official "
+            f"*{live_data.SOURCE_TITLE}* API on data.gov.in "
+            f"({live_data.SOURCE_PUBLISHER}). It needs a free personal API key, "
+            "and none is configured on this deployment, so this app shows "
+            "historical data only. Nothing on this page is a live price."
+            + (f"\n\nLast attempt: {live_status.get('last_attempt_utc')} UTC — "
+               f"{live_status.get('error')}" if live_status.get("error") else ""))
+        st.markdown("To connect it, get a free key at data.gov.in. **Locally:** set "
+                    "the environment variable `DATAGOVIN_API_KEY` and run "
+                    "`python scripts/fetch_current_prices.py`. **On Streamlit "
+                    "Cloud:** add `DATAGOVIN_API_KEY` under *Settings → Secrets*; "
+                    "the app then checks the API at most every 6 hours. See "
+                    "`docs/01_DATA_SOURCE.md`.")
+    else:
+        badge = {"current": ("Current", "good"), "stale": ("Stale", "warn")}.get(
+            fr["status"], ("Unavailable", "warn"))
+        a1, a2, a3 = st.columns(3)
+        a1.markdown(_card("Status", badge[0],
+                          f'latest observation {fr.get("age_days")} day(s) old',
+                          badge[1]), unsafe_allow_html=True)
+        a2.markdown(_card("Latest observation date",
+                          _d(live_df["arrival_date"].max()), "arrival date at the mandi"),
+                    unsafe_allow_html=True)
+        a3.markdown(_card("Retrieved", str(live_status.get("last_success_utc", "-"))[:16]
+                          .replace("T", " "),
+                          f'UTC · source updated {live_status.get("source_updated") or "-"}'),
+                    unsafe_allow_html=True)
+        if live_status.get("ok") is False and live_status.get("error"):
+            st.warning(f"The latest refresh failed, so the previous good data is "
+                       f"shown: {live_status['error']}")
+        show = live_df[["arrival_date", "market", "district", "commodity", "variety",
+                        "min_price", "modal_price", "max_price"]].sort_values(
+            ["commodity", "market", "arrival_date"])
+        show["arrival_date"] = show["arrival_date"].dt.strftime("%d %b %Y")
+        st.dataframe(show.rename(columns={
+            "arrival_date": "Date", "market": "Market", "district": "District",
+            "commodity": "Commodity", "variety": "Variety",
+            "min_price": "Min (Rs./q)", "modal_price": "Modal (Rs./q)",
+            "max_price": "Max (Rs./q)"}), hide_index=True, use_container_width=True)
+        st.caption("Modal = the most common transaction price that day; min and max "
+                   "are the day's range. Unit as published by AGMARKNET (Rs. per "
+                   "quintal). Source: data.gov.in, GODL-India.")
+        st.download_button("Download these prices (CSV)", _csv(live_df),
+                           "latest_mandi_prices.csv", "text/csv", key="dl_live")
+
+# ========================================================= 7. METHOD & DATA
+with tabs[6]:
     if L == "hi":
         st.caption(t["tech"])
     st.subheader("Data source and attribution")
@@ -846,9 +953,35 @@ inside the test window. The old results are preserved in `outputs/legacy/`.
                    "days) and joined; Gradient Boosting-delta did not anywhere. "
                    "Admitting a candidate on CV makes CV scores slightly optimistic; "
                    "the test window is untouched, so test results are not.")
+    sea = DATA.get("seasonal", pd.DataFrame())
+    if not sea.empty:
+        st.markdown("**Experiment: is a weekly seasonal baseline stronger than Naive?**")
+        cvm = (sea[sea["block"].str.startswith("cv")]
+               .groupby(["commodity", "market", "horizon", "model"])["rmse"].mean()
+               .unstack().round(1).reset_index())
+        st.dataframe(cvm, hide_index=True, use_container_width=True)
+        st.caption("Mean CV fold RMSE on the rows where both baselines exist. "
+                   "'Same weekday last week' is far worse than 'same as today' at "
+                   "every horizon, so plain Naive stays the reference baseline.")
+    dm_all = DATA.get("dm", pd.DataFrame())
+    if not dm_all.empty:
+        sq = dm_all[dm_all["loss"] == "squared"]
+        ab = dm_all[dm_all["loss"] == "absolute"]
+        st.markdown("**Are the test differences statistically detectable?**")
+        st.markdown(
+            f"Diebold–Mariano tests of every model against Naive on the test "
+            f"period, Holm-adjusted within each pair and horizon: under squared "
+            f"error, **{int(((sq.p_holm < .05) & (sq.dm_stat < 0)).sum())} of "
+            f"{len(sq)}** comparisons favour a model and "
+            f"{int(((sq.p_holm < .05) & (sq.dm_stat > 0)).sum())} favour Naive; "
+            f"under absolute error, Naive is significantly better in "
+            f"**{int(((ab.p_holm < .05) & (ab.dm_stat > 0)).sum())} of {len(ab)}**. "
+            f"The other differences are not distinguishable from noise on this "
+            f"test window (`scripts/experiment_significance.py`).")
     st.subheader("Limitations")
     st.markdown("""
-- **Historical only** (ends April 2015). Not a live price service.
+- **Historical only** (ends April 2015). The *Latest prices* tab is separate
+  and only shows data when an official API key is configured.
 - Two series from one mandi pass the data gate; Jodhpur and Kota report too
   rarely and are excluded rather than forced.
 - Prices only: no arrivals, weather, MSP, festivals or transport costs, which is
@@ -870,6 +1003,8 @@ inside the test window. The old results are preserved in `outputs/legacy/`.
                 "python scripts/build_features.py        # clean + features + Phase 1 gate\n"
                 "python scripts/run_pipeline.py --all-pairs   # CV, test, forecast + gate\n"
                 "python scripts/experiment_delta_target.py    # optional experiment\n"
+                "python scripts/experiment_seasonal_naive.py  # optional experiment\n"
+                "python scripts/experiment_significance.py    # optional experiment\n"
                 "python scripts/data_report.py           # docs/DATA_REPORT.md\n"
                 "python -m pytest                        # tests", language="bash")
     with st.expander("Full data provenance record"):

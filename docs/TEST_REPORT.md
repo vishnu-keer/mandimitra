@@ -1,7 +1,48 @@
 # Test report
 
-Run on 27 October 2026. Every result below was observed, not assumed. Where
-something was **not** tested, it says so.
+## Release of 28 October 2026 (competition package)
+
+Every result below was observed on 28 Oct 2026. Where something was **not**
+tested, it says so. The 27 October report follows below for history.
+
+| Check | Command / method | Result |
+|---|---|---|
+| Clean clone, CPython 3.11 | `pip install -r requirements.txt && pip check && python -m pytest` | install OK, no broken requirements, **154 passed** (28.0 s) |
+| Clean clone, CPython 3.12 | same | **154 passed** (29.2 s) |
+| Pipeline gates (clean clone, both versions) | `extract_rajasthan.py`, `build_features.py`, `run_pipeline.py --all-pairs` | PHASE 1 GATE: PASS · PHASE 2 GATE: PASS |
+| Rebuild vs committed results | `check_reproducible.py` | PASS; `git status` shows **0** tracked files changed (byte-identical) |
+| Experiment outputs | re-ran `experiment_seasonal_naive.py`, `experiment_significance.py` | byte-identical to the committed CSVs |
+| Browser, local | Playwright, 33 checks: 2 series × 7 tabs, 3 horizons, Hindi, dark OS preference, 375 px | **33/33**, no console or page errors, first load 2.5 s |
+| Browser, live app | <https://mandimitra.streamlit.app/>, DOM checks inside the app frame | both series × 6 tabs (before this update) render without exception; actual-vs-predicted at 1/2/3 days; Hindi; no overflow at 375 px |
+| CI on GitHub | owner's screenshot of the Actions page | runs #1 and #2 green |
+| Deck | `validate.py`, LibreOffice render, placeholder scan | passed; 12 slides rendered and inspected |
+| QR codes | decoded from the rendered poster PDF and deck PDF with OpenCV | both decode to `https://mandimitra.streamlit.app/` and `https://github.com/vishnu-keer/mandimitra`; both URLs opened and checked |
+
+### New tests in this release (33)
+
+| File | Tests | Guarantees |
+|---|---:|---|
+| `test_live_data.py` | 25 | record validation (fields, dates, numbers, min ≤ modal ≤ max, range, duplicates); a schema change is rejected and reported; empty, failed, invalid or partial downloads never replace the last good data; paging follows `total` and refuses a truncated download; the API key never appears in errors, status or files; freshness is computed from the observation date |
+| `test_significance.py` | 5 | identical forecasts give no statistic; a clearly better model is significant with a negative sign; swapping models flips the sign; equal-quality noise is usually not significant; missing values are dropped pairwise |
+| `test_dashboard.py` | +3 | Latest-prices tab says "Not connected" without a key; a stale snapshot is labelled stale; the overview's freshness comes from the observation date |
+
+### An environment problem found during testing
+
+Installing the chart and QR libraries into the project's test environment
+upgraded numpy to 2.5.4 and broke 37 tests with a numpy-2 deprecation error.
+The project code was not at fault; the environment was restored to the pins
+and the presentation tools now live in a separate environment
+(`presentation/requirements-docs.txt`).
+
+### Not tested
+
+- A real call to the data.gov.in current-price API (needs the owner's key).
+- The redeployed app after this update (not deployed — pending approval).
+- The Mac's own environment for this update (run `python -m pytest` there).
+
+---
+
+## Release of 27 October 2026
 
 ## Environments
 

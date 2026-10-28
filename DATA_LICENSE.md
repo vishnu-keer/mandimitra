@@ -14,8 +14,16 @@ Ministry of Consumer Affairs, Food & Public Distribution, Government of India.
 Data on data.gov.in is made available under the **Government Open Data License –
 India (GODL-India)**, which permits use, adaptation and publication, for
 commercial and non-commercial purposes, with attribution to the data provider.
-The authoritative text is at
-<https://data.gov.in/government-open-data-license-india>.
+The platform's licence page is <https://www.data.gov.in/Godl>, and its Terms
+of Use (<https://www.data.gov.in/terms-of-use>) require that the source be
+prominently acknowledged. (On 28 Oct 2026 the licence page redirected to a
+sign-in, so confirm its wording there before relying on this summary.)
+
+Current prices fetched with `scripts/fetch_current_prices.py` come from the
+*Current Daily Price of Various Commodities from Various Markets (Mandi)*
+resource (Directorate of Marketing and Inspection / AGMARKNET) on the same
+platform and carry the same attribution duty. They are stored only in
+`data/live/`, which is not committed.
 
 ## Derived data
 

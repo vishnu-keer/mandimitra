@@ -56,11 +56,26 @@ The excluded series are listed in the dashboard with the reason. The gate was
 
 ## Licence and attribution
 
-Datasets on data.gov.in are published under the **Government Open Data
-License – India (GODL-India)**, notified in February 2017. It permits use,
-adaptation and publication, commercial or not, **with attribution** to the
-data provider. It excludes personal and sensitive data, which this dataset does
-not contain.
+What was checked on 28 Oct 2026, and what it shows:
+
+- The platform's **Terms of Use** (<https://www.data.gov.in/terms-of-use>)
+  say content is available "under terms described in the license metadata
+  element of individual dataset records except where otherwise noted", and
+  that wherever material is published "the source must be prominently
+  acknowledged".
+- The platform's catalogue records for both datasets used here (read through
+  its public catalogue API) carry **no explicit licence field**.
+- The platform has a *Government Open Data License – India* page
+  (<https://www.data.gov.in/Godl>); opening it redirected to a government
+  sign-in, so its text was not read here.
+- Secondary sources describe GODL-India (notified February 2017) as the
+  licence for data shared through the platform under NDSAP, permitting use,
+  adaptation and publication, commercial or not, **with attribution**, and
+  excluding personal or sensitive data (this dataset has none).
+
+So: attribution is required and is done; GODL-India is the applicable licence
+according to the platform and secondary sources, but the exact licence text was
+not read from an official page in this session.
 
 Attribution used in this project (dashboard footer, README, `DATA_LICENSE.md`):
 
@@ -71,11 +86,29 @@ Attribution used in this project (dashboard footer, README, `DATA_LICENSE.md`):
 The **code licence and the data licence are separate.** Publishing the code
 under an open-source licence does not relicense the data.
 
-> **Check before publishing.** The licence page
-> `https://data.gov.in/government-open-data-license-india` could not be read
-> automatically from here (the site blocks automated access). Before making
-> the repository public, open the dataset page on data.gov.in in a browser and
-> confirm that it shows GODL-India.
+> **Manual check before a competition submission:** while signed in to
+> data.gov.in, open the GODL page and the dataset page and confirm the licence
+> wording.
+
+## Current prices (optional, separate from the evaluation)
+
+| Field | Value (checked 28 Oct 2026) |
+|---|---|
+| Resource | *Current Daily Price of Various Commodities from Various Markets (Mandi)*, id `9ef84268-d588-465a-a308-a864a43d0070` |
+| Publisher | Ministry of Agriculture and Farmers Welfare, Directorate of Marketing and Inspection (data from AGMARKNET) |
+| Catalogue | Granularity daily; API available; record last changed 2026-10-28 10:01 UTC |
+| Access | `https://api.data.gov.in/resource/<id>?api-key=…&format=json` — without a key it answers `{"error": "Authorization field missing"}`. The bulk file behind the resource returned HTTP 403. |
+| Key | Free, from a personal data.gov.in account. Set `DATAGOVIN_API_KEY` (environment variable, or Streamlit Cloud *Settings → Secrets*). Never commit it. |
+| Fields expected | `state, district, market, commodity, variety, grade, arrival_date (DD/MM/YYYY), min_price, max_price, modal_price` — the API's documented record schema. **Not yet confirmed by a real keyed call**; the validator rejects a snapshot whose fields differ and lists the difference. |
+
+`src/live_data.py` fetches every page, validates each record (fields, dates,
+numbers, min ≤ modal ≤ max, plausible range, duplicates), saves the raw
+response with its retrieval time, and replaces `data/live/latest.csv` only if
+the whole download is valid. A failed or empty download never overwrites the
+last good data. Observation date, the source's update time and our retrieval
+time are kept as three separate fields, and freshness is judged from the
+latest genuine observation date. These prices are observations, not forecasts,
+and no model uses them.
 
 ## Known limitations of this dataset
 

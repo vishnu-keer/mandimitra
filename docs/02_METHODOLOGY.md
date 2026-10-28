@@ -170,7 +170,7 @@ One selection changes. Under the defaults, ARIMA would be the Tomato 1-day
 choice; its test RMSE is 122.16 against Naive's 120.51, so it would not beat
 Naive either. **No reported conclusion changes.** Random Forest-delta's
 admission does depend on the regularised settings (with defaults its mean CV
-RMSE at Tomato h=1 is 92.8, worse than Naive's 76.9).
+RMSE at Tomato h=1 is 91.2, worse than Naive's 76.9).
 
 ## 10. Results — as measured
 
@@ -199,13 +199,40 @@ lowest Onion 2-day (108.94), and Random Forest-delta the lowest Tomato 2- and
 Choosing any of them now would be selecting on the test set — the mistake the
 first version made, which produced its "Gradient Boosting beats Naive by 7.33%"
 headline. Note how unstable that winner is: Gradient Boosting's *CV* RMSE at
-Onion h=1 was 229, the worst of all five.
+Onion h=1 was 229, almost four times Naive's 61.5 and second-worst of the five
+(only Random Forest, 275, was worse).
 
 **Finding 4 — why Naive is hard to beat here.** On 84.8% (Onion) and 82.8%
 (Tomato) of reported days the quoted price is identical to the previous report.
 
 **Finding 5 — uncertainty ranges did not hold up.** 80% ranges built from CV
 errors covered 55–74% of test outcomes, so none are drawn (`src/intervals.py`).
+
+**Finding 6 — none of the differences in a model's favour is statistically
+detectable.** Diebold–Mariano tests (Harvey–Leybourne–Newbold small-sample
+correction, autocovariances to lag h−1) of every model against Naive on the
+identical test days, Holm-adjusted within each pair and horizon
+(`scripts/experiment_significance.py`, `outputs/experiments/dm_test.csv`):
+
+| Loss | Comparisons | Model significantly better | Naive significantly better |
+|---|---:|---:|---:|
+| Squared error (the RMSE question) | 24 | **0** | 6 |
+| Absolute error (the MAE question) | 24 | **0** | 24 |
+
+The hindsight winner on Onion at 1 day (Gradient Boosting, 87.26 vs 94.27
+RMSE) has DM = −0.67, p = 0.505: a 7% gap that this test window cannot
+distinguish from noise. The Tomato 1-day choice (Random Forest-delta) is
+significantly *worse* than Naive under squared error (DM = 3.18, Holm
+p = 0.007). Absolute-error results partly reflect that Naive is exactly right
+on the many days the quoted price does not move. These tests say nothing about
+other periods or markets.
+
+**Finding 7 — a weekly seasonal baseline is much weaker.** "Same weekday last
+week" (price[t+h−7]) was scored on the same folds and test window
+(`scripts/experiment_seasonal_naive.py`). Mean CV fold RMSE, Naive vs seasonal
+naive, on rows where both exist: Onion 63.0 / 169.5, 84.9 / 160.5,
+117.3 / 168.2; Tomato 79.4 / 215.0, 109.7 / 212.9, 136.5 / 213.3 (h = 1, 2, 3).
+By the rule written before the run, plain Naive stays the reference baseline.
 
 **No general claim is made.** This describes one mandi, two commodities,
 2009–2015, horizons of 1–3 days. It is not evidence that machine learning
@@ -246,6 +273,9 @@ describes how calm the period was, not memorisation, and is labelled so.
   (section 9 audit).
 - **No exogenous inputs** (arrivals, weather, MSP, festivals), which is where
   any real edge would come from.
+- **Retrospective only.** Every result is a back-test on 2009–2015 data. No
+  forecast here has been checked prospectively against prices that arrived
+  after it was made.
 
 ## 13. Why not LSTM / GRU
 
@@ -262,6 +292,8 @@ python scripts/build_features.py             # PHASE 1 GATE
 python scripts/run_pipeline.py --all-pairs   # PHASE 2 GATE
 python scripts/experiment_delta_target.py    # optional: the 5th-candidate experiment
 python scripts/experiment_hyperparameter_sensitivity.py   # optional: settings audit
+python scripts/experiment_seasonal_naive.py  # optional: second baseline
+python scripts/experiment_significance.py    # optional: Diebold-Mariano tests
 python scripts/data_report.py                # docs/DATA_REPORT.md
 python scripts/make_manifest.py              # docs/RUN_MANIFEST.md
 python -m pytest

@@ -126,3 +126,50 @@ def test_missing_outputs_show_an_actionable_error_not_a_traceback(tmp_path, monk
     assert any("missing" in e.value.lower() for e in at.error)
     assert "run_pipeline.py" in _text(at)
     st.cache_data.clear()      # do not leak the empty state into later tests
+
+
+def test_latest_prices_tab_says_not_connected_without_a_key(monkeypatch, tmp_path):
+    import streamlit as st
+    from src import live_data as ld
+    monkeypatch.delenv("DATAGOVIN_API_KEY", raising=False)
+    for name, val in [("LIVE_DIR", tmp_path), ("RAW_DIR", tmp_path / "raw"),
+                      ("LATEST_PATH", tmp_path / "latest.csv"),
+                      ("STATUS_PATH", tmp_path / "status.json")]:
+        monkeypatch.setattr(ld, name, val)
+    st.cache_data.clear()
+    at = _run()
+    txt = _text(at)
+    assert "Not connected" in txt and "Nothing on this page is a live price" in txt
+    # Regression: touching st.secrets with no secrets file drew a red
+    # "No secrets found" box exposing local file paths.
+    assert not any("secrets" in e.value.lower() for e in at.error), \
+        [e.value for e in at.error]
+    st.cache_data.clear()
+
+
+def test_latest_prices_tab_shows_a_stale_snapshot_as_stale(monkeypatch, tmp_path):
+    """A snapshot is displayed with its own observation date and a STALE badge
+    when old -- it must never be presented as current."""
+    import streamlit as st
+    from src import live_data as ld
+    monkeypatch.setattr(ld, "get_api_key", lambda: None)
+    for name, val in [("LIVE_DIR", tmp_path), ("RAW_DIR", tmp_path / "raw"),
+                      ("LATEST_PATH", tmp_path / "latest.csv"),
+                      ("STATUS_PATH", tmp_path / "status.json")]:
+        monkeypatch.setattr(ld, name, val)
+    pd.DataFrame([{   # TEST FIXTURE, not project data
+        "state": "Rajasthan", "district": "Jaipur", "market": "Jaipur (F&V)",
+        "commodity": "Onion", "variety": "Red", "arrival_date": "2020-01-02",
+        "min_price": 1000.0, "max_price": 1400.0, "modal_price": 1200.0}]
+    ).to_csv(tmp_path / "latest.csv", index=False)
+    st.cache_data.clear()
+    at = _run()
+    txt = _text(at)
+    assert "Stale" in txt and "02 Jan 2020" in txt and "Not connected" not in txt
+    st.cache_data.clear()
+
+
+def test_overview_reports_data_freshness_from_the_observation_date():
+    at = _run()
+    txt = _text(at)
+    assert "Data quality and freshness" in txt and "days old" in txt

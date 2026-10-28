@@ -32,6 +32,9 @@ OUTPUT_FILES = {
 OPTIONAL_FILES = {
     "delta_cv": "experiments/delta_target_cv.csv",
     "legacy_best": "legacy/best_model.csv",
+    "dm": "experiments/dm_test.csv",
+    "seasonal": "experiments/seasonal_naive.csv",
+    "hyper": "experiments/hyperparameter_sensitivity.csv",
 }
 DATE_COLS = {"predictions": ["date"]}
 # Files the dashboard cannot work without. The rest degrade gracefully.
@@ -124,6 +127,31 @@ def dataset_facts(features: pd.DataFrame, clean: pd.DataFrame,
         "median_price": round(float(f["price_t"].median()), 0),
         "min_price": round(float(f["price_t"].min()), 0),
         "max_price": round(float(f["price_t"].max()), 0),
+    }
+
+
+def quality_facts(clean: pd.DataFrame, commodity: str, market: str,
+                  today=None) -> dict:
+    """Data-quality numbers for one series, all descriptive.
+
+    unchanged_pct: share of reported days whose price equals the previous
+    REPORTED price (a stale-quote indicator). age_days: days between the latest
+    genuine observation and today -- the freshness of the data itself.
+    """
+    c = clean[(clean["commodity"] == commodity) & (clean["market"] == market)]
+    rep = c[c["observed"]].sort_values("date")
+    if rep.empty:
+        return {}
+    d = rep[config.PRICE_COL].diff().dropna()
+    gaps = rep["date"].diff().dt.days.dropna()
+    today = pd.Timestamp(today or pd.Timestamp.now(tz="UTC").date())
+    last = rep["date"].max()
+    return {
+        "latest_observation": last,
+        "age_days": int((today - last).days),
+        "unchanged_pct": round(100 * float((d == 0).mean()), 1),
+        "longest_gap_days": int(gaps.max()) if not gaps.empty else 0,
+        "median_gap_days": float(gaps.median()) if not gaps.empty else 0.0,
     }
 
 

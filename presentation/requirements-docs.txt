@@ -1,0 +1,9 @@
+# Only for regenerating the paper figures, deck, poster and QR codes.
+# Not needed to run the app or the pipeline. Install in a SEPARATE virtual
+# environment: matplotlib/opencv pull numpy 2.x, which the pipeline pins away.
+matplotlib==3.9.2
+qrcode[pil]==8.0
+opencv-python-headless==4.10.0.84
+reportlab==4.2.5
+pandas==2.2.3
+pyarrow==17.0.0

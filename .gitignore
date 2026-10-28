@@ -35,3 +35,7 @@ _to_delete/
 # pickled model is opaque and version-fragile.
 models_store/*
 !models_store/.gitkeep
+
+# Current-price snapshots fetched with a personal data.gov.in API key.
+# Regenerable with scripts/fetch_current_prices.py; not part of the evaluation.
+data/live/

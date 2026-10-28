@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MandiMitra poster</title>
+<!-- One-page A2 poster. Numbers from outputs/ via research/key_numbers.json
+     (checked by hand against that file on 28 Oct 2026). Build the PDF with:
+     node presentation/tools/html_to_pdf.js presentation/poster.html presentation/MandiMitra_Poster.pdf poster -->
+<style>
+  @page { size: 420mm 594mm; margin: 0; }
+  :root { --ink:#1d2430; --muted:#5b6472; --green:#1f6f4a; --deep:#16523a; --tint:#f1f5f2; --amber:#b7791f; --line:#dde5e0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; color: var(--ink); font-family: "Noto Sans", "DejaVu Sans", Calibri, sans-serif; }
+  .page { width: 420mm; height: 594mm; padding: 13mm 16mm 10mm 16mm; display: grid; grid-template-rows: auto auto 1fr auto; gap: 7mm; overflow: hidden; }
+  header { background: var(--deep); color: #fff; border-radius: 6mm; padding: 9mm 12mm; display: grid; grid-template-columns: 1fr auto; gap: 10mm; align-items: center; }
+  h1 { font-family: "Noto Serif", "DejaVu Serif", Cambria, serif; font-size: 28mm; line-height: 1; margin: 0 0 4mm 0; }
+  .sub { font-size: 9mm; font-weight: 700; margin: 0 0 3mm 0; color: #fff; }
+  .q { font-size: 6.2mm; color: #d9e8df; margin: 0 0 4mm 0; max-width: 250mm; }
+  .by { font-size: 5.4mm; color: #d9e8df; margin: 0; }
+  .qrs { display: flex; gap: 6mm; }
+  .qr { background: #fff; border-radius: 3mm; padding: 4mm; text-align: center; color: var(--ink); font-weight: 700; font-size: 5mm; width: 52mm; }
+  .qr img { width: 44mm; height: 44mm; display: block; margin: 0 auto 2mm auto; }
+  .qr small { display: block; font-weight: 400; font-size: 3.6mm; color: var(--muted); word-break: break-all; }
+  .banner { background: #fff8eb; border-left: 3mm solid var(--amber); color: #5c3d0a; padding: 5mm 8mm; border-radius: 3mm; font-size: 6.2mm; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7mm; align-content: start; }
+  .box { background: var(--tint); border: 0.4mm solid var(--line); border-radius: 4mm; padding: 6mm 7mm; }
+  .box h2 { font-family: "Noto Serif", "DejaVu Serif", Cambria, serif; font-size: 8.6mm; color: var(--green); margin: 0 0 4mm 0; }
+  .box p, .box li { font-size: 4.8mm; line-height: 1.3; margin: 0 0 2mm 0; }
+  .box ul { margin: 0; padding-left: 7mm; }
+  .span2 { grid-column: span 2; }
+  .span3 { grid-column: span 3; }
+  .stat { font-family: "Noto Serif", "DejaVu Serif", Cambria, serif; font-size: 13mm; font-weight: 700; color: var(--green); line-height: 1; margin: 1mm 0 1mm 0; }
+  .stat.amber { color: var(--amber); }
+  .statlab { font-size: 4.8mm; margin: 0 0 3mm 0; }
+  img.fig { width: 100%; height: 70mm; object-fit: cover; object-position: top; display: block; border-radius: 2mm; background: #fff; border: 0.3mm solid var(--line); }
+  .flow { display: flex; gap: 3mm; align-items: stretch; margin-top: 2mm; }
+  .step { flex: 1; background: #fff; border: 0.4mm solid var(--line); border-radius: 3mm; padding: 3mm; font-size: 4.1mm; text-align: center; }
+  .step b { display: block; font-size: 5mm; margin-bottom: 1mm; }
+  .step.hl { background: var(--green); color: #fff; border-color: var(--green); }
+  table { width: 100%; border-collapse: collapse; font-size: 4.8mm; }
+  th, td { padding: 2mm 2.5mm; border-bottom: 0.3mm solid var(--line); text-align: right; }
+  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+  th { color: var(--muted); font-weight: 700; }
+  footer { font-size: 4.2mm; color: var(--muted); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>MandiMitra</h1>
+      <p class="sub">Explainable mandi price intelligence</p>
+      <p class="q">Does machine learning beat “tomorrow’s price = today’s price” for wholesale onion and tomato in Jaipur? We tested it with a protocol that cannot pick the winner on the test data.</p>
+      <p class="by">Vishnu Keer · Vivekananda Global University, Jaipur · Preprint, October 2026</p>
+    </div>
+    <div class="qrs">
+      <div class="qr"><img src="qr_live_app.png" alt="QR code to the live app">Live app<small>mandimitra.streamlit.app</small></div>
+      <div class="qr"><img src="qr_repository.png" alt="QR code to the repository">Code + data<small>github.com/vishnu-keer/mandimitra</small></div>
+    </div>
+  </header>
+
+  <div class="banner"><b>Historical data.</b> The official series ends on 28 April 2015. Nothing here is a current price or financial, trading or farming advice.</div>
+
+  <div class="grid">
+    <div class="box">
+      <h2>Problem</h2>
+      <p>Mandi prices jump: Jaipur wholesale onion went from Rs. 600–900 per quintal in June 2013 to Rs. 4,500 on 21 October 2013. Price-prediction tools reach farmers and traders, but how they were tested is rarely visible.</p>
+      <div class="stat">84.8%</div>
+      <p class="statlab">of reported Onion/Jaipur days quote exactly the previous price (Tomato 82.8%).</p>
+      <div class="stat amber">~55%</div>
+      <p class="statlab">of calendar days have a reported price at all.</p>
+    </div>
+    <div class="box span2">
+      <h2>Solution</h2>
+      <img class="fig" src="assets/poster_overview.png" alt="MandiMitra overview screen">
+      <p style="margin-top:4mm">A bilingual (English / हिन्दी) dashboard: every forecast beside “same as today”, data freshness and stale-quote rates on screen, uncertainty drawn only if it held up, CSV downloads, phone-ready. Free to run.</p>
+    </div>
+
+    <div class="box span2">
+      <h2>Architecture and data</h2>
+      <div class="flow">
+        <div class="step"><b>Official CSVs</b>Dept. of Consumer Affairs, data.gov.in; untouched, SHA-256</div>
+        <div class="step"><b>Clean</b>0 = missing; daily calendar</div>
+        <div class="step"><b>Features ≤ day t</b>lags, averages, volatility; leakage-proofed</div>
+        <div class="step"><b>Choose by CV</b>4 rolling folds, rule fixed in advance</div>
+        <div class="step hl"><b>Test once</b>Feb 2014 – Apr 2015, ~200 days per horizon</div>
+        <div class="step"><b>Dashboard</b>read-only; trains nothing</div>
+      </div>
+      <p style="margin-top:5mm">Onion and Tomato, Jaipur, 1 Jan 2009 – 28 Apr 2015 (1,002 and 995 usable 1-day rows). Jodhpur and Kota excluded by a 400-row gate set in advance. Licence: GODL-India, with attribution. 154 automated tests; byte-identical rebuilds; CI on every push.</p>
+    </div>
+    <div class="box">
+      <h2>Evaluation</h2>
+      <ul>
+        <li>Candidates: Naive, ARIMA, Random Forest, Gradient Boosting, RF predicting the change.</li>
+        <li>Only days the mandi really reported are scored; every model on identical days.</li>
+        <li>Embargo: no training target crosses a boundary.</li>
+        <li>Diebold–Mariano tests vs Naive, Holm-adjusted.</li>
+      </ul>
+    </div>
+
+    <div class="box span2">
+      <h2>Verified results — the model chosen in advance never beat “same as today”</h2>
+      <table>
+        <tr><th>Series</th><th>Days ahead · chosen by CV</th><th>Test RMSE</th><th>Naive RMSE</th><th>vs Naive</th></tr>
+        <tr><td>Onion/Jaipur</td><td>1 · Naive</td><td>94.27</td><td>94.27</td><td>0.00%</td></tr>
+        <tr><td>Onion/Jaipur</td><td>2 · Naive</td><td>110.29</td><td>110.29</td><td>0.00%</td></tr>
+        <tr><td>Onion/Jaipur</td><td>3 · Naive</td><td>127.93</td><td>127.93</td><td>0.00%</td></tr>
+        <tr><td>Tomato/Jaipur</td><td>1 · RF-delta</td><td>127.33</td><td>120.51</td><td>−5.66%</td></tr>
+        <tr><td>Tomato/Jaipur</td><td>2 · ARIMA</td><td>179.10</td><td>178.16</td><td>−0.53%</td></tr>
+        <tr><td>Tomato/Jaipur</td><td>3 · ARIMA</td><td>227.38</td><td>226.68</td><td>−0.31%</td></tr>
+      </table>
+      <p style="margin-top:4mm">Rs. per quintal. Naive also had the lowest MAE at all six. 80% ranges covered only 55–74% of test outcomes, so no band is drawn.</p>
+    </div>
+    <div class="box">
+      <h2>Significance</h2>
+      <div class="stat">0 of 48</div>
+      <p class="statlab">Diebold–Mariano tests found any model more accurate than Naive.</p>
+      <div class="stat amber">p = 0.505</div>
+      <p class="statlab">for our first version’s “+7.33%” — which came from picking the winner on the test set.</p>
+    </div>
+
+    <div class="box span3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10mm;">
+      <div>
+        <h2>Limitations</h2>
+        <ul>
+          <li>Historical only (ends April 2015); back-test, not prospective.</li>
+          <li>One mandi, two commodities; prices only — no arrivals or weather.</li>
+          <li>About 200 test days per horizon: “not distinguishable” is not “equal”.</li>
+          <li>No user study yet; no impact is claimed.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Next</h2>
+        <ul>
+          <li>Connect the official AGMARKNET daily price API (client built and tested; needs a free key).</li>
+          <li>More markets through the same gate; arrivals and rainfall inputs.</li>
+          <li>Score live forecasts prospectively.</li>
+          <li>Consented study with 5–10 Jaipur traders and farmers.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Data: Dept. of Consumer Affairs, Govt. of India, via data.gov.in (GODL-India) · Code: MIT · Paper: research/MANDIMITRA_RESEARCH_PAPER.pdf</span>
+  </footer>
+</div>
+</body>
+</html>

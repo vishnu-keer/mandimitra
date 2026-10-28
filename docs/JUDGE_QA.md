@@ -61,9 +61,10 @@ is more useful than a number that wouldn't survive the next month.
 ### 8. But Gradient Boosting *did* have a lower test error at 1 day?
 
 Yes — 87.26 against Naive's 94.27 on Onion, 1 day. But you only know that
-*after* looking at the test data. On the earlier years, the same model was the
-worst of five (CV RMSE 229). A model that is worst in one period and best in
-the next is not one you can rely on. We show it as a transparency note, not as
+*after* looking at the test data. On the earlier years, the same model's CV
+RMSE was 229 — almost four times Naive's 61.5, and second-worst of the five.
+A model that is near the bottom in one period and on top in the next is not
+one you can rely on. A significance test agrees: the 7% gap has p = 0.505. We show it as a transparency note, not as
 the answer.
 
 ### 9. Why do MAE and RMSE disagree?
@@ -145,14 +146,14 @@ dashboard dependency, so it can sit behind an API later.
 Every input and output file is hashed in `docs/RUN_MANIFEST.md`, and a test
 fails if any file stops matching. Rebuilding from the government files gives
 byte-identical results on the same setup; on other setups only ARIMA moves, by
-hundredths of a rupee, and a script checks that tolerance. Once the repository
-is on GitHub, its CI workflow rebuilds everything and runs that check on every
-push.
+hundredths of a rupee, and a script checks that tolerance. The repository's
+CI workflow rebuilds everything from the government files and runs that check
+on every push; both runs so far were green.
 
 ### 20. What are the main limitations?
 
 Historical data only; one mandi; prices only (no arrivals, weather, MSP,
-festivals); stale quotes on most reported days; about 45% of calendar days
+festivals); stale quotes on most reported days; about 44–47% of calendar days
 missing; no user study, so **no claim about farmer income or decisions**.
 
 ### 21. What would you do next?
@@ -160,3 +161,83 @@ missing; no user study, so **no claim about farmer income or decisions**.
 Add newer Agmarknet data and more markets; add arrivals and rainfall as inputs,
 where a real edge is more likely; a rolling re-evaluation that updates monthly;
 and a small study with actual traders on whether the explanation is useful.
+
+---
+
+## Harder questions
+
+### 22. Is the difference between a model and Naive statistically real?
+
+We tested it. Diebold–Mariano tests with the Harvey–Leybourne–Newbold
+correction, every model against Naive on the identical test days, Holm-adjusted:
+under squared error, 0 of 24 comparisons favour a model and 6 favour Naive;
+under absolute error, 0 of 24 favour a model and 24 favour Naive. The Tomato
+1-day choice is significantly *worse* than Naive (p = 0.007).
+
+### 23. Then is the model useful at all?
+
+As a price predictor, not on this data — and we say so. The product is useful
+as a reference and a warning: it shows the strongest simple forecast, how
+stale the quotes are, how often the price moves, and that confident bands
+failed. Whether that helps real users is the next thing to measure.
+
+### 24. Is the data current?
+
+No. The evaluation uses an official series that ends 28 April 2015, and every
+screen says so. For current prices we built and tested a client for the
+official AGMARKNET daily price API on data.gov.in. It needs a free personal
+key; until one is added, the "Latest prices" tab says "Not connected" rather
+than showing anything that looks live.
+
+### 25. Would this generalise to other markets?
+
+Unknown. Jodhpur and Kota report too rarely to evaluate. Two Jaipur series is
+a small sample. The method generalises — add the official file, the gate
+decides — but the *result* has to be measured market by market.
+
+### 26. What about existing tools like AGMARKNET or e-NAM?
+
+AGMARKNET publishes prices; e-NAM is a trading platform (1,389 mandis
+integrated as of Feb 2024, per PIB). Neither evaluates forecasts. TNAU's
+market intelligence cell publishes expert price outlooks. MandiMitra's niche is
+transparent, reproducible evaluation shown to users. See
+`docs/COMPETITIVE_LANDSCAPE.md`.
+
+### 27. Can you legally redistribute the data?
+
+The platform's Terms of Use allow reproduction with prominent acknowledgement
+and refer to per-dataset licence metadata; the platform licence is GODL-India.
+We attribute the Department of Consumer Affairs and data.gov.in everywhere.
+We still need to read the licence text while signed in to the portal — listed
+as a manual check.
+
+### 28. What personal data do you collect?
+
+None. No accounts, forms or analytics; Streamlit's usage statistics are off.
+The optional API key is never stored, logged or shown (tested).
+
+### 29. What does it cost to run?
+
+₹0: GitHub, GitHub Actions, Streamlit Community Cloud and data.gov.in are free
+at this scale. If free tiers change, it runs locally at ₹0.
+
+### 30. Has it been used in the field? What is the economic impact?
+
+Not yet, and we do not claim any. We have a consented study plan for 5–10
+Jaipur traders and farmers and will publish the findings, including negative
+ones. Economic impact would need a controlled design we have not done.
+
+### 31. What evidence is still missing?
+
+A real call to the current-price API; user evidence; prospective accuracy on
+prices published after the forecast; more markets; non-price inputs; and the
+licence text read from the official page.
+
+### 32. Did you change anything after seeing results?
+
+Yes, and it is disclosed: the first version picked on the test set (replaced);
+the validation design was changed once after seeing validation (not test)
+results; the fifth model was admitted by a CV rule written beforehand; the
+tree settings date from the first protocol and were audited. Two wording
+errors in earlier docs were also found and corrected (`docs/COMPETITION_GAP_ANALYSIS.md`).
+

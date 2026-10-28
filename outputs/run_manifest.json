@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-27",
+  "generated": "2026-10-28",
   "status": "HISTORICAL. The source ends on 2015-04-28; nothing here is current or live.",
   "source": {
     "publisher": "Department of Consumer Affairs (Price Monitoring Cell), Ministry of Consumer Affairs, Food & Public Distribution, Government of India",
@@ -16,7 +16,7 @@
   "environment": {
     "python": "3.12.3",
     "implementation": "CPython",
-    "platform": "Linux-6.18.44-fc-v165-x86_64-with-glibc2.39",
+    "platform": "Linux-6.18.44-fc-v180-x86_64-with-glibc2.39",
     "packages": {
       "pandas": "2.2.3",
       "numpy": "1.26.4",
@@ -28,8 +28,8 @@
       "pyarrow": "17.0.0"
     }
   },
-  "code_sha256": "f56cdda27e35abe3acff602aec77bfe957e23a0a6e23b53074f2e841bd56e973",
-  "git_head_at_generation": null,
+  "code_sha256": "b49f0e1e0695d5f8634e535a450e7c410d01e2cc810c1ccc853711022d12dbb1",
+  "git_head_at_generation": "344fd4f816ec552f32353d38ffb400e559da748e",
   "configuration": {
     "commodities": [
       "Onion",
@@ -328,9 +328,17 @@
       "sha256": "a1e892f924a6e4067e2d6edc9c7e2f6459469cd2c3b3ea5846af0d302b83d74f",
       "bytes": 13230
     },
+    "outputs/experiments/dm_test.csv": {
+      "sha256": "8f97a8d64006a64b4d2fb9a35d310badcd3c475db2c1d51d7bc4d0bb8c0559f0",
+      "bytes": 6046
+    },
     "outputs/experiments/hyperparameter_sensitivity.csv": {
       "sha256": "ca74b74e66496e9fb92b7aa2088cc3ed476b14d79094d352baf392d59a14f3bd",
       "bytes": 1848
+    },
+    "outputs/experiments/seasonal_naive.csv": {
+      "sha256": "a5cb0f8ef1b423d370bd8ca780801cbe8a97e1eb058402701671a789996f536c",
+      "bytes": 4772
     },
     "outputs/legacy/best_model.csv": {
       "sha256": "8c0b39fcbfdb2a062a70fd0805104315abdec7651acff1cfb70c88852dca417c",

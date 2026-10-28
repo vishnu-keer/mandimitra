@@ -11,6 +11,8 @@ flowchart LR
     C -->|run_pipeline.py --all-pairs<br/>PHASE 2 GATE| D["outputs/*.csv<br/>comparison, predictions,<br/>CV folds, forecast, exclusions"]
     D -->|make_manifest.py| E["RUN_MANIFEST<br/>SHA-256 of every file"]
     C --> F["app.py<br/>(Streamlit, read-only)"]
+    L["data.gov.in API<br/>current prices<br/>(optional, keyed)"] -->|live_data.py<br/>validate, all-or-nothing| M["data/live/latest.csv"]
+    M --> F
     D --> F
     F --> G["Browser<br/>laptop / projector / phone"]
 ```
@@ -23,7 +25,9 @@ flowchart LR
 | Clean + features | `scripts/build_features.py` | `data/raw/*.csv` | `clean.parquet`, `features.parquet` | Phase 1: leakage proof, calendar-lag check, coverage gate |
 | Evaluate + forecast | `scripts/run_pipeline.py --all-pairs` | features, clean | `outputs/*.csv` | Phase 2: identical rows, embargo, CV-not-test selection, forecast dates after last data |
 | Report | `scripts/data_report.py`, `scripts/make_manifest.py` | everything | `docs/DATA_REPORT.md`, `docs/RUN_MANIFEST.md`, `outputs/run_manifest.json` | `tests/test_manifest.py` |
-| Serve | `streamlit run app.py` | features, clean, outputs | — | `tests/test_dashboard.py` (headless AppTest) |
+| Audit experiments | `experiment_delta_target.py`, `experiment_hyperparameter_sensitivity.py`, `experiment_seasonal_naive.py`, `experiment_significance.py` | features, outputs | `outputs/experiments/*.csv` | rules written in each script before it ran |
+| Current prices (optional) | `scripts/fetch_current_prices.py` (or the app, every 6 h, if a key is set) | data.gov.in API | `data/live/` (not committed) | `tests/test_live_data.py` |
+| Serve | `streamlit run app.py` | features, clean, outputs, `data/live/` | — | `tests/test_dashboard.py` (headless AppTest) |
 
 ## Modules
 
@@ -40,8 +44,10 @@ flowchart LR
 | `src/evaluate.py` | CV, selection, final test scoring, train diagnostics | select on test |
 | `src/intervals.py` | Empirical ranges from CV errors, checked once on test | tune on test |
 | `src/forecast.py` | Forward 1–3 day forecast from the last data date, with a plain-language note | call an LLM |
-| `src/dashboard_data.py` | Read outputs for the app; descriptive statistics only | import a model library (tested) |
-| `app.py` | Presentation: six tabs, English/Hindi, downloads | train or re-score anything |
+| `src/significance.py` | Diebold–Mariano test with the Harvey–Leybourne–Newbold correction | select a model |
+| `src/live_data.py` | Current prices from the official API: paging, validation, all-or-nothing snapshot, freshness | overwrite good data with a failed download; log the API key |
+| `src/dashboard_data.py` | Read outputs for the app; descriptive statistics and data-quality facts only | import a model library (tested) |
+| `app.py` | Presentation: seven tabs, English/Hindi, downloads | train or re-score anything |
 
 ## Design decisions
 
