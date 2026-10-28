@@ -109,6 +109,22 @@ files, `_to_delete/`, `.DS_Store`, `__pycache__`, a `.env` and a
 included**, and every file `app.py` reads is tracked. A scan of tracked text
 files for keys, tokens, passwords, private keys and personal paths found none.
 
+## 7. Live deployment (28 Oct 2026)
+
+<https://mandimitra.streamlit.app/>, deployed from `vishnu-keer/mandimitra`,
+branch `main`, Python 3.12. Checked in a browser against the live app: both
+series × all six tabs with no Streamlit exception; Model evaluation × 1, 2, 3
+days for both series with the *Actual vs predicted* chart rendered and two
+models pre-selected; Onion overview Rs. 550 / 56% / "No"; Tomato overview
+Rs. 1,500 with forecasts Rs. 1,484 / 1,508 / 1,502; Forecast tab shows origin
+and target dates; Hindi mode renders; 375 px phone width with no horizontal
+overflow. The only browser console errors are 404s from Streamlit Cloud's own
+`/api/v2/user/details` (the viewer is not signed in to Streamlit), not from
+the app; every app asset loaded with status 200.
+
+The first deployment attempt failed because the platform's default interpreter
+was Python 3.14; redeploying with Python 3.12 fixed it (`docs/DEPLOY.md`).
+
 ## Manual checks (not done by me)
 
 1. **Your Mac:** `source .venv/bin/activate && python -m pytest` — expect
@@ -119,11 +135,11 @@ files for keys, tokens, passwords, private keys and personal paths found none.
    GODL-India (the site blocks automated reading).
 3. **Hindi wording:** have a native speaker read the overview once.
 4. **Projector:** check colours and font size on the actual projector.
-5. **After deployment:** the smoke test in `docs/DEPLOY.md`, step 6.
+5. GitHub Actions: confirm the CI run is green on the repository's Actions tab.
 
 ## Known limitations of the testing
 
-- GitHub Actions itself has not run yet (the repository is not on GitHub).
-  The workflow's steps were executed by hand in clean environments.
+- I cannot read the repository's Actions results from here; the workflow's
+  steps were executed by hand in clean environments.
 - No accessibility audit beyond contrast-conscious colours and the phone check.
 - No load testing; a single-user demo app.

@@ -16,7 +16,7 @@ take, under your own GitHub account. No step costs money or needs a card.
 | Repository | `<your-github-username>/mandimitra` (public) |
 | Branch | `main` |
 | Main file path | `app.py` |
-| Python version (Advanced settings) | **3.12** — the Community Cloud default, and tested with these pins. 3.11 also works. **Do not pick 3.13 or newer**: the pinned `numpy==1.26.4` has no wheels for it and the build will fail. |
+| Python version (Advanced settings) | **3.12 — set it explicitly.** Do not accept the default: on 28 Oct 2026 the default was Python 3.14, and the build failed (no pre-built wheels for the pinned pandas/numpy/lxml, so it tried to compile them). 3.11 also works. Anything 3.13 or newer fails. The version cannot be changed later without deleting and redeploying the app. |
 | Dependencies | `requirements.txt` at the repo root (Community Cloud installs it automatically) |
 | Secrets | **None.** The app uses no keys, tokens or accounts. Leave the Secrets box empty. |
 | Data | Committed in the repo: `data/raw/source/`, `data/raw/*.csv`, `data/interim/clean.parquet`, `data/processed/features.parquet`, `outputs/**`. The app reads them; it trains nothing at start-up. |
@@ -101,7 +101,7 @@ Only after every row passes, add the link to the README's *Live demo* line.
 
 | Symptom | Fix |
 |---|---|
-| Build fails on numpy / scipy | Python version is not 3.11 or 3.12. Change it in the app's settings if offered; otherwise delete the app and redeploy with 3.12. |
+| Build fails on numpy / scipy / lxml / pandas ("Failed to build", "libxml2 and libxslt development packages") | Python version is not 3.11 or 3.12 — check the line `Using Python 3.x` at the top of the logs. Delete the app and redeploy with 3.12 under Advanced settings. |
 | "The data has not been built yet" | `data/processed/features.parquet` or `outputs/` was not pushed. `git ls-files outputs data | head` must list them. |
 | App is slow to open | It was asleep; wait for it to wake. Open it yourself shortly before anyone else needs it. |
 | A bad change went live | `git revert <commit>` then `git push` — the app redeploys from `main` automatically. Or, in **Manage app**, reboot. |

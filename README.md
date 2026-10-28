@@ -11,8 +11,9 @@ the evidence, including when the answer is "the models don't beat that".
 > here is a current price, and nothing here is financial, trading or farming
 > advice.
 
-**Live demo:** not deployed yet — see [`docs/DEPLOY.md`](docs/DEPLOY.md).
-The app runs fully offline on a laptop.
+**Live demo:** <https://mandimitra.streamlit.app/> (Streamlit Community Cloud,
+free tier — if it has been idle it takes a moment to wake up). The app also runs
+fully offline on a laptop; see *Quick start*.
 
 ![Overview](docs/screenshots/01-overview.png)
 
@@ -75,7 +76,7 @@ alone. It is not a claim that forecasting is impossible with better inputs.
 Python **3.11 or 3.12** (3.13+ is not supported by the pinned numpy).
 
 ```bash
-git clone https://github.com/<your-github-username>/mandimitra.git
+git clone https://github.com/vishnu-keer/mandimitra.git
 cd mandimitra
 python3 -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
